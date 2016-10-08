@@ -78,4 +78,4 @@ module.exports = (robot) ->
                   return
 
                 returnedData = JSON.parse body
-                console.log returnedData
+                console.log returnedData["directions"][0]["summary"]["totalLength"]
