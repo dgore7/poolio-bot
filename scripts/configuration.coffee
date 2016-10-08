@@ -56,11 +56,6 @@ module.exports = (robot) ->
         returnedData = JSON.parse body
         coords =  returnedData["candidates"][0]["location"]
 
-        #Let the user know how far away other users are from him.
-        for uname in listOfUsers
-          robot.messsageroom "@#{uname} is this @{uname.location.}"
-
-
 
         robot.http("http://sampleserver1.arcgisonline.com/ArcGIS/rest/services/Locators/ESRI_Geocode_USA/GeocodeServer/findAddressCandidates?f=json&Address=#{destinationAddress}&City=#{destinationCity}&State=#{destinationState}&Zip=#{destinationZip}")
           .header('Accept', 'application/json')
@@ -84,4 +79,7 @@ module.exports = (robot) ->
                   return
 
                 returnedData = JSON.parse body
-                console.log returnedData["directions"][0]["summary"]["totalLength"]
+                totalMiles=returnedData["directions"][0]["summary"]["totalLength"]
+
+                for uname in listOfUsers
+                  robot.messsageroom "@#{uname} is #{totalMiles} miles away from #{res.message.user.name}"
