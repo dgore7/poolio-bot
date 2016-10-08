@@ -1,5 +1,7 @@
+require('../db/db');
+
 module.exports = (robot) ->
-  #listOfUsers = ['augustk', 'aurykenb', 'dgore7'];
+  listOfUsers = ['augustk', 'aurykenb', 'dgore7'];
   robot.hear /I need a ride to work/i, (res) ->
     console.log res.message.user.name
     res.send "I'll see what I can do!"
@@ -10,32 +12,36 @@ module.exports = (robot) ->
   robot.hear /I want in/i, (res) ->
     res.send "I'm happy to hear that!\nJust tell me your address(add, city, state), and you're in!"
 
-  robot.hear /d+\s+w+,\s*w+,\s*w+/, (outerRes) ->
-    robot.http()
-      .post() (err, res, body) ->
-        # August's code!
+  robot.hear /(d+\s+w+,\s*w+,\s*w+)/, (outerRes) ->
+    robot.http("https://maps.googleapis.com/maps/api/distancematrix/json?units=imperial&origins=#{outerRes.matches[1].replace(' ',"+")}&destinations=New+York+City,NY&key=#{process.env.GOOGLE_MAPS_TOKEN}")
+      .get() (err, res, body) ->
+        console.log body
+        console.log err
+        console.log res
         if err
-          outerRes.send "Bot malfunction. Beep. Boop."
+          res.send "Bot malfunction. Beep. Boop."
         if res.statusCode isnt 200
-          outerRes.send "Something went wrong ):"
-        else outerRes.send "You're in! Poolio will pool as he see's fit"
+          res.send "Something went wrong ):"
+        else
+          user.save({userName: res.message.user.name, address: res.matches[1]})
+          res.send "You're in! Poolio will pool as he see's fit"
+
 
 
   robot.hear /pls work/i, (res) ->
 
-    token = ""
 
-    address = "380 New York Street".replace(" ", "+")
-    city = "Redlands"
-    state = "CA"
-    zip = "92373"
 
+    address = "5006 hermitage ave".replace(" ", "+")
+    city = "chicago"
+    state = "IL"
+    zip = ""
     coords = {}
 
-    destinationAddress ="280 New York Street".replace(" ", "+")
-    destinationCity = "Redlands"
-    destinationState = "CA"
-    destinationZip = "92373"
+    destinationAddress ="615 raintree rd".replace(" ", "+")
+    destinationCity = "buffalo grove"
+    destinationState = "il"
+    destinationZip = ""
 
     destinationCoords = {}
 
@@ -63,7 +69,7 @@ module.exports = (robot) ->
 
             stops = coords.x + ',' + coords.y + ',' + ';' + destinationCoords.x + ',' + destinationCoords.y
 
-            robot.http("http://route.arcgis.com/arcgis/rest/services/World/Route/NAServer/Route_World/solve?f=json&token=#{token}&stops=#{stops}")
+            robot.http("http://route.arcgis.com/arcgis/rest/services/World/Route/NAServer/Route_World/solve?f=json&token=#{process.env.ESRI_TOKEN}&stops=#{stops}")
               .header('Accept', 'application/json')
               .get() (err, res, body) ->
 
